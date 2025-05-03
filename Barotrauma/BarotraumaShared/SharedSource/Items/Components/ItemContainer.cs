@@ -438,7 +438,7 @@ namespace Barotrauma.Items.Components
                             ActiveContainedItem activeContainedItem = new(containedItem, effect, containableItem.ExcludeBroken, containableItem.ExcludeFullCondition, containableItem.BlameEquipperForDeath);
                             activeContainedItems.Add(activeContainedItem);
 
-                            if (!ShouldApplyEffects(activeContainedItem)) { continue; }
+                            if (!ShouldApplyEffects(activeContainedItem, true)) { continue; }
                             activeContainedItem.StatusEffect.Apply(ActionType.OnInserted, deltaTime: 1, item, targets);
                         }
                     }
@@ -507,7 +507,7 @@ namespace Barotrauma.Items.Components
         {
             foreach (ActiveContainedItem activeContainedItem in activeContainedItems)
             {
-                if (activeContainedItem.Item != containedItem || !ShouldApplyEffects(activeContainedItem)) { continue; }
+                if (activeContainedItem.Item != containedItem || !ShouldApplyEffects(activeContainedItem, true)) { continue; }
                 activeContainedItem.StatusEffect.Apply(ActionType.OnRemoved, deltaTime: 1, item, targets);
             }
 
@@ -692,13 +692,20 @@ namespace Barotrauma.Items.Components
             }
         }
 
-        private bool ShouldApplyEffects(ActiveContainedItem activeContainedItem)
+        private bool ShouldApplyEffects(ActiveContainedItem activeContainedItem, bool refreshTargets = false)
         {
             Item contained = activeContainedItem.Item;
             if (activeContainedItem.ExcludeBroken && contained.Condition <= 0) { return false; }
             if (activeContainedItem.ExcludeFullCondition && contained.IsFullCondition) { return false; }
-            StatusEffect effect = activeContainedItem.StatusEffect;
 
+            if (refreshTargets)
+                UpdateTargets(ref contained, activeContainedItem.StatusEffect);
+            
+            return true;
+        }
+
+        private void UpdateTargets(ref Item contained, StatusEffect effect)
+        {
             targets.Clear();
             if (effect.HasTargetType(StatusEffect.TargetType.This))
             {
@@ -716,7 +723,6 @@ namespace Barotrauma.Items.Components
             {
                 effect.AddNearbyTargets(item.WorldPosition, targets);
             }
-            return true;
         }
 
         /// <summary>
