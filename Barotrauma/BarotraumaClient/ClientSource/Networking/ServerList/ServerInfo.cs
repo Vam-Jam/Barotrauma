@@ -92,6 +92,8 @@ namespace Barotrauma.Networking
 
         public bool IsModded => ContentPackages.Any(p => !GameMain.VanillaContent.NameMatches(p.Name));
 
+        public Option<bool> SpamFilterCache = Option<bool>.None();
+
         public ServerInfo(params Endpoint[] endpoint) : this(endpoint.ToImmutableArray()) { }
 
         public ServerInfo(ImmutableArray<Endpoint> endpoints)

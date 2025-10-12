@@ -155,12 +155,17 @@ namespace Barotrauma
 
         public bool IsFiltered(ServerInfo info)
         {
-            foreach (var f in Filters)
+            bool filter = false;
+            
+            Parallel.ForEach(Filters, f =>
             {
-                if (f.IsFiltered(info)) { return true; }
-            }
+                if (f.IsFiltered(info))
+                {
+                    filter = true;
+                }
+            });
 
-            return false;
+            return filter;
         }
 
         public SpamServerFilter(XElement element)
@@ -269,8 +274,28 @@ These will hide all servers that have a discord.gg link in their name or descrip
 
         public static bool IsFiltered(ServerInfo info)
         {
-            if (LocalSpamFilter.TryUnwrap(out var localFilter) && localFilter.IsFiltered(info)) { return true; }
-            if (GlobalSpamFilter.TryUnwrap(out var globalFilter) && globalFilter.IsFiltered(info)) { return true; }
+            if (info.SpamFilterCache.IsNone())
+            {
+                if (LocalSpamFilter.TryUnwrap(out var localFilter) && localFilter.IsFiltered(info))
+                {
+                    info.SpamFilterCache = Option<bool>.Some(true);
+                    return true;
+                }
+
+                if (GlobalSpamFilter.TryUnwrap(out var globalFilter) && globalFilter.IsFiltered(info))
+                {
+                    info.SpamFilterCache = Option<bool>.Some(true);
+                    return true;
+                }
+                
+                info.SpamFilterCache = Option<bool>.Some(false);
+            }
+            else
+            {
+                info.SpamFilterCache.TryUnwrap(out var filter);
+                return filter;
+            }
+
             return false;
         }
 

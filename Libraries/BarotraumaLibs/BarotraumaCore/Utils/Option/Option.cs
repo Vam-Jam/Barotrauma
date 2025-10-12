@@ -67,8 +67,6 @@ namespace Barotrauma
         public static Option<T> Some(T value)
             => typeof(T) switch
             {
-                var t when t == typeof(bool)
-                    => throw new Exception("Option type rejects booleans"),
                 {IsConstructedGenericType: true} t when t.GetGenericTypeDefinition() == typeof(Option<>)
                     => throw new Exception("Option type rejects nested Option"),
                 {IsConstructedGenericType: true} t when t.GetGenericTypeDefinition() == typeof(Nullable<>)
